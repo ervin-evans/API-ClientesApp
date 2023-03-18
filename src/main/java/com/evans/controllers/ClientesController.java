@@ -28,6 +28,25 @@ public class ClientesController {
 		return iClienteService.findAllClientes();
 	}
 
-	
+	@GetMapping("/{id}")
+	public ResponseEntity<?> findById(@PathVariable("id") Long id) {
+		Cliente cliente = null;
+		Map<String, Object> response = new HashMap<String, Object>();
+		try {
+			cliente = iClienteService.findById(id);
+		} catch (DataAccessException e) {
+			response.put("msg", "Hubo un error al consultar con la base de datos");
+			response.put("error", e.getMessage().concat(":").concat(e.getMostSpecificCause().getMessage()));
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		if (cliente == null) {
+			response.put("msg", "El cliente con el id: " + id + " no se encontro en la base de datos");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		} else {
+			return new ResponseEntity<Cliente>(cliente, HttpStatus.OK);
+		}
+
+	}
 
 }
