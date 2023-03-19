@@ -10,6 +10,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -104,7 +105,6 @@ public class ClientesController {
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
 		}
 		List<Cliente> clientesByEmail = iClienteService.findByEmail(cliente.getEmail());
-		System.out.println("Lista email"+clientesByEmail.size());
 		if (!clientesByEmail.isEmpty()) {
 			response.put("msg", "El email " + cliente.getEmail() + " ya existe");
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
@@ -126,6 +126,31 @@ public class ClientesController {
 				+ clienteDB.getApellidoMaterno() + " fue actualizado satisfactoriamente");
 		response.put("cliente", clienteDB);
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+
+	}
+
+	@DeleteMapping("/delete/{id}")
+	public ResponseEntity<?> delete(@PathVariable("id") Long id) {
+		Map<String, Object> response = new HashMap<String, Object>();
+		Cliente cliente = null;
+		try {
+			//buscamos el id del cliente para verificar si existe en nuestra base de datos
+			cliente = iClienteService.findById(id);
+			//si el cliente no existe
+			if (cliente == null) {
+				response.put("msg", "No existe cliente con id " + id);
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+			}
+			cliente = iClienteService.delete(cliente);
+		} catch (DataAccessException e) {
+			response.put("msg", "Hubo errores al eliminar el cliente de la base de datos");
+			response.put("errors", e.getMostSpecificCause().getMessage());
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		response.put("msg", "El cliente " + cliente.getNombre() + " " + cliente.getApellidoPaterno() + " "
+				+ cliente.getApellidoMaterno() + " fue eliminado");
+		response.put("cliente", cliente);
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 
 	}
 
