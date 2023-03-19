@@ -1,20 +1,22 @@
 package com.evans.controllers;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.evans.helpers.UploadPhoto;
@@ -189,7 +190,7 @@ public class ClientesController {
 	 **************************************************************************************************/
 
 	@PostMapping("/image/upload")
-	public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestParam("id") Long id){
+	public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestParam("id") Long id) {
 		Map<String, Object> response = new HashMap<>();
 		if (UploadPhoto.isValidImageExtension(file.getOriginalFilename())) {
 			Cliente cliente = iClienteService.findById(id);
@@ -216,7 +217,26 @@ public class ClientesController {
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
 		}
 	}
-	
-	
+
+	/**************************************************************************************************
+	 * * RECUPERAR LA IMAGE DEL CLIENTE
+	 **************************************************************************************************/
+	@GetMapping("/image/uploads/{imageName:.+}")
+	public ResponseEntity<Resource> showImage(@PathVariable("imageName") String imageName) {
+		Resource resource = null;
+		try {
+			System.out.println("ruta de las imagenes" + pathImages + imageName);
+			resource = new UrlResource("file", pathImages + imageName);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			System.err.println(e.getMessage());
+		}
+		if (!resource.exists() && resource.isReadable()) {
+			throw new RuntimeException("Error, no se pudo cargar la imagen: " + imageName);
+		}
+		HttpHeaders headers = new HttpHeaders();
+		headers.add(HttpHeaders.CONTENT_TYPE, "image/*");
+		return new ResponseEntity<Resource>(resource, headers, HttpStatus.OK);
+	}
 
 }
