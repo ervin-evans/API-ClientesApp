@@ -13,7 +13,6 @@ public class UploadPhoto {
 		originalName = String.valueOf(UUID.randomUUID() + "-" + originalName);
 		try {
 			File imageFile = new File(path + originalName);
-			System.out.println("Archivo: " + imageFile.getAbsolutePath());
 			// guardamos fisicamente la imagen el el disco
 			multipartFile.transferTo(imageFile);
 			return originalName;

@@ -29,7 +29,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.evans.helpers.UploadPhoto;
 import com.evans.models.Cliente;
+import com.evans.models.Region;
 import com.evans.service.IClienteService;
+import com.evans.service.IRegionesService;
 
 import jakarta.validation.Valid;
 
@@ -40,6 +42,9 @@ public class ClientesController {
 
 	@Autowired
 	private IClienteService iClienteService;
+
+	@Autowired
+	private IRegionesService iRegionesService;
 
 	@Value("${clientes.app.path.images}")
 	private String pathImages;
@@ -225,7 +230,6 @@ public class ClientesController {
 	public ResponseEntity<Resource> showImage(@PathVariable("imageName") String imageName) {
 		Resource resource = null;
 		try {
-			System.out.println("ruta de las imagenes" + pathImages + imageName);
 			resource = new UrlResource("file", pathImages + imageName);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
@@ -239,4 +243,11 @@ public class ClientesController {
 		return new ResponseEntity<Resource>(resource, headers, HttpStatus.OK);
 	}
 
+	/**************************************************************************************************
+	 * * BUSCAMOS TODAS LAS REGIONES
+	 **************************************************************************************************/
+	@GetMapping("/regiones")
+	public List<Region> findAllRegiones() {
+		return iRegionesService.findAll();
+	}
 }
