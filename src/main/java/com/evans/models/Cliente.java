@@ -1,10 +1,8 @@
 package com.evans.models;
 
-import java.time.LocalDateTime;
-
+import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -44,12 +42,12 @@ public class Cliente {
 	private String foto;
 
 	@Column(name = "created_at")
-	private LocalDateTime createdAt;
+	private LocalDate createdAt;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@NotNull(message = "La region es obligatoria")
 	@JoinColumn(name = "region_id")
-	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+	@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 	private Region region;
 
 	public Long getId() {
@@ -100,11 +98,11 @@ public class Cliente {
 		this.foto = foto;
 	}
 
-	public LocalDateTime getCreatedAt() {
+	public LocalDate getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
+	public void setCreatedAt(LocalDate createdAt) {
 		this.createdAt = createdAt;
 	}
 

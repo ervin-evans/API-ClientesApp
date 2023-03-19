@@ -9,6 +9,8 @@ public interface IClienteService {
 
 	public Cliente findById(Long id);
 
+	public List<Cliente> findByEmail(String email);
+
 	public Cliente save(Cliente cliente);
 
 	public Cliente delete(Cliente cliente);

@@ -26,6 +26,11 @@ public class ClienteServiceImpl implements IClienteService {
 	}
 
 	@Override
+	public List<Cliente> findByEmail(String email) {
+		return iClienteRepository.findByEmail(email);
+	}
+
+	@Override
 	public Cliente save(Cliente cliente) {
 		return iClienteRepository.save(cliente);
 	}

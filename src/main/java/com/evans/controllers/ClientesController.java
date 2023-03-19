@@ -13,6 +13,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -79,6 +80,51 @@ public class ClientesController {
 		response.put("msg", "El cliente " + clienteDb.getNombre() + " " + clienteDb.getApellidoPaterno() + " "
 				+ clienteDb.getApellidoMaterno() + " fue guardado satisfactoriamente");
 		response.put("cliente", clienteDb);
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+
+	}
+
+	@PutMapping("/update/{id}")
+	public ResponseEntity<?> update(@Valid @RequestBody Cliente cliente, BindingResult result,
+			@PathVariable("id") Long id) {
+		Cliente clienteDB = null;
+		Map<String, Object> response = new HashMap<String, Object>();
+		clienteDB = iClienteService.findById(id);
+		// verificando los errores de validacion
+		if (result.hasErrors()) {
+			List<String> errors = new ArrayList<>();
+			result.getFieldErrors().forEach(e -> {
+				errors.add(e.getDefaultMessage());
+			});
+			response.put("errors", errors);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
+		if (clienteDB == null) {
+			response.put("msg", "No se encontro el cliente con el id " + id);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		}
+		List<Cliente> clientesByEmail = iClienteService.findByEmail(cliente.getEmail());
+		System.out.println("Lista email"+clientesByEmail.size());
+		if (!clientesByEmail.isEmpty()) {
+			response.put("msg", "El email " + cliente.getEmail() + " ya existe");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
+		try {
+			clienteDB.setNombre(cliente.getNombre());
+			clienteDB.setApellidoPaterno(cliente.getApellidoMaterno());
+			clienteDB.setApellidoPaterno(cliente.getApellidoMaterno());
+			clienteDB.setEmail(cliente.getEmail());
+			clienteDB.setFoto(cliente.getFoto());
+			clienteDB.setRegion(cliente.getRegion());
+			clienteDB = iClienteService.save(clienteDB);
+		} catch (DataAccessException e) {
+			response.put("msg", "Hubo algunos errores al actualizar el registro");
+			response.put("errors", e.getMostSpecificCause().getMessage());
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		response.put("msg", "El cliente " + clienteDB.getNombre() + " " + clienteDB.getApellidoPaterno() + ' '
+				+ clienteDB.getApellidoMaterno() + " fue actualizado satisfactoriamente");
+		response.put("cliente", clienteDB);
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 
 	}
