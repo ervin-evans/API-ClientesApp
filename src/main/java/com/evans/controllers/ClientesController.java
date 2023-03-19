@@ -5,25 +5,34 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.evans.helpers.UploadPhoto;
 import com.evans.models.Cliente;
 import com.evans.service.IClienteService;
 
 import jakarta.validation.Valid;
 
+@CrossOrigin(origins = { "http://localhost:4200" }) // para ser consumido desde una Fron-End con Angular
 @RestController
 @RequestMapping("/clientes")
 public class ClientesController {
@@ -31,10 +40,21 @@ public class ClientesController {
 	@Autowired
 	private IClienteService iClienteService;
 
+	@Value("${clientes.app.path.images}")
+	private String pathImages;
+
+	/**************************************************************************************************
+	 * * MOSTRAR TODOS LOS CLIENTES
+	 **************************************************************************************************/
+
 	@GetMapping("/list")
 	public List<Cliente> clientes() {
 		return iClienteService.findAllClientes();
 	}
+
+	/**************************************************************************************************
+	 * * BUSCAR CLIENTE POR ID
+	 **************************************************************************************************/
 
 	@GetMapping("/{id}")
 	public ResponseEntity<?> findById(@PathVariable("id") Long id) {
@@ -56,6 +76,10 @@ public class ClientesController {
 		}
 
 	}
+
+	/**************************************************************************************************
+	 * * GUARDAR UN CLIENTE
+	 **************************************************************************************************/
 
 	@PostMapping("/save")
 	public ResponseEntity<?> save(@Valid @RequestBody Cliente cliente, BindingResult result) {
@@ -85,6 +109,9 @@ public class ClientesController {
 
 	}
 
+	/**************************************************************************************************
+	 * * ACTUALIZAR UN CLIENTE
+	 **************************************************************************************************/
 	@PutMapping("/update/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody Cliente cliente, BindingResult result,
 			@PathVariable("id") Long id) {
@@ -129,14 +156,17 @@ public class ClientesController {
 
 	}
 
+	/**************************************************************************************************
+	 * * ELIMINAR UN CLIENTE
+	 **************************************************************************************************/
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> delete(@PathVariable("id") Long id) {
 		Map<String, Object> response = new HashMap<String, Object>();
 		Cliente cliente = null;
 		try {
-			//buscamos el id del cliente para verificar si existe en nuestra base de datos
+			// buscamos el id del cliente para verificar si existe en nuestra base de datos
 			cliente = iClienteService.findById(id);
-			//si el cliente no existe
+			// si el cliente no existe
 			if (cliente == null) {
 				response.put("msg", "No existe cliente con id " + id);
 				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
@@ -153,5 +183,40 @@ public class ClientesController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 
 	}
+
+	/**************************************************************************************************
+	 * * GUARDAR IMAGENES DEL CLIENTE
+	 **************************************************************************************************/
+
+	@PostMapping("/image/upload")
+	public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestParam("id") Long id){
+		Map<String, Object> response = new HashMap<>();
+		if (UploadPhoto.isValidImageExtension(file.getOriginalFilename())) {
+			Cliente cliente = iClienteService.findById(id);
+			if (cliente != null) {
+				String imageSaved = UploadPhoto.savePhoto(file, pathImages);
+				if (imageSaved != null) {
+					cliente.setFoto(imageSaved);
+					cliente = iClienteService.save(cliente);
+					response.put("msg",
+							"La foto del cliente " + cliente.getNombre() + " " + cliente.getApellidoPaterno() + " "
+									+ cliente.getApellidoMaterno() + " ha sido guardado satisfactoriamente");
+					response.put("cliente", cliente);
+				} else {
+					response.put("errors", "Hubo un error al guardar la imagen del cliente");
+					return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			} else {
+				response.put("msg", "El cliente con el id " + id + " no pudo ser encontrado");
+			}
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+
+		} else {
+			response.put("msg", "Debe cargar una imagen ['PNG','JPEG','JPG']");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	
 
 }
