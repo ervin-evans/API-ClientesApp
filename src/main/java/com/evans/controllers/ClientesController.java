@@ -78,7 +78,8 @@ public class ClientesController {
 			response.put("msg", "El cliente con el id: " + id + " no se encontro en la base de datos");
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
 		} else {
-			return new ResponseEntity<Cliente>(cliente, HttpStatus.OK);
+			response.put("cliente", cliente);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 		}
 
 	}
