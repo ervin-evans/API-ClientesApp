@@ -3,6 +3,9 @@ package com.evans.serviceImpl;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.evans.models.Producto;
@@ -18,6 +21,16 @@ public class ProductosServiceImpl implements IProductoService {
 	@Override
 	public List<Producto> findAll() {
 		return iProductoRepository.findAll();
+	}
+
+	@Override
+	public List<Producto> findByExample(Example<Producto> example) {
+		return iProductoRepository.findAll(example);
+	}
+
+	@Override
+	public Page<Producto> findAll(Pageable pageable) {
+		return iProductoRepository.findAll(pageable);
 	}
 
 	@Override
