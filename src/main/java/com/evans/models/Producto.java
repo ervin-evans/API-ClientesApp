@@ -2,6 +2,11 @@ package com.evans.models;
 
 import java.time.LocalDate;
 
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
@@ -12,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -32,23 +38,47 @@ public class Producto {
 	private String descripcion;
 
 	@Min(value = 0, message = "El precio minimo del producto es 0")
-	@NotBlank(message = "El precio del producto es obligatorio")
+	// @NotBlank(message = "El precio del producto es obligatorio")
 	private Double precio;
 
 	@Min(value = 0, message = "El minimo de stock del producto debe ser 0")
-	@NotBlank(message = "El stock del producto es obligatorio")
 	private Integer stock;
 
 	@Column(name = "created_at")
 	private LocalDate createdAt;
 
-	private String image = "";
+	private String image = "no-image.png";
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "categoria_id")
 	@NotNull(message = "La categoria del producto es obligatorio")
 	@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 	private Categoria categoria;
+
+	public Producto() {
+
+	}
+
+	public Producto(Long id, @NotBlank(message = "El nombre del producto es obligatorio") String nombre,
+			@NotBlank(message = "El la descripcion del producto es obligatorio") String descripcion,
+			@Min(value = 0, message = "El precio minimo del producto es 0") Double precio,
+			@Min(value = 0, message = "El minimo de stock del producto debe ser 0") Integer stock, LocalDate createdAt,
+			String image, @NotNull(message = "La categoria del producto es obligatorio") Categoria categoria) {
+		super();
+		this.id = id;
+		this.nombre = nombre;
+		this.descripcion = descripcion;
+		this.precio = precio;
+		this.stock = stock;
+		this.createdAt = createdAt;
+		this.image = image;
+		this.categoria = categoria;
+	}
+
+	@PrePersist
+	private void generateCreatedAt() {
+		createdAt = LocalDate.now();
+	}
 
 	public Long getId() {
 		return id;

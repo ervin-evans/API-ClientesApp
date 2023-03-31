@@ -34,6 +34,7 @@ import com.evans.service.ICategoriaService;
 import com.evans.service.IProductoService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 @RestController
 @CrossOrigin(origins = { "http://localhost:4200" })
@@ -144,6 +145,7 @@ public class ProductosController {
 	public ResponseEntity<Map<String, Object>> update(@Valid @RequestBody Producto producto, BindingResult result) {
 		Map<String, Object> response = new HashMap<>();
 		Producto productoDb = null;
+	
 		// verificamos errores de validacion
 		if (result.hasErrors()) {
 			List<String> errors = new ArrayList<>();
@@ -166,12 +168,13 @@ public class ProductosController {
 			productoDb.setDescripcion(producto.getDescripcion());
 			productoDb.setPrecio(producto.getPrecio());
 			productoDb.setStock(producto.getStock());
+			productoDb.setCreatedAt(productoDb.getCreatedAt());
 			productoDb.setCategoria(producto.getCategoria());
 			// guardamos el producto con los nuevos valores
 			productoDb = iProductoService.save(productoDb);
 
 		} catch (DataAccessException e) {
-			response.put("msg", "Hubo errores al intentar guardar el producto");
+			response.put("msg", "Hubo errores al intentar actualizar el producto");
 			response.put("errors", e.getMostSpecificCause().getMessage());
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -185,13 +188,13 @@ public class ProductosController {
 	 * * ELIMINAR UN PRODUCTO
 	 **************************************************************************************************/
 	@DeleteMapping("/delete/{id}")
-	public ResponseEntity<Map<String, Object>> delete(Long id) {
+	public ResponseEntity<Map<String, Object>> delete(@PathVariable("id") Long id) {
 		Map<String, Object> response = new HashMap<>();
 		Producto producto = null;
 		try {
 			producto = iProductoService.findByid(id);
 			if (producto == null) {
-				response.put("msg", "No pudimos eliminar el producto porque no existe");
+				response.put("msg", "No pudimos eliminar el producto porque no existe el id proporcionado");
 				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
 			}
 			iProductoService.delete(producto);
@@ -209,7 +212,7 @@ public class ProductosController {
 	 * * SUBIR IMAGEN DE UN PRODUCTO
 	 **************************************************************************************************/
 	@PostMapping("/image/upload")
-	public ResponseEntity<Map<String, Object>> saveImage(@RequestParam("file") MultipartFile file,
+	public ResponseEntity<Map<String, Object>> saveImage(@RequestParam("image") MultipartFile file,
 			@RequestParam("id") Long id) {
 		Map<String, Object> response = new HashMap<>();
 		if (UploadPhoto.isValidImageExtension(file.getOriginalFilename())) {
