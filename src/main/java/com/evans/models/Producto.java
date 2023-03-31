@@ -42,6 +42,8 @@ public class Producto {
 	@Column(name = "created_at")
 	private LocalDate createdAt;
 
+	private String image = "";
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "categoria_id")
 	@NotNull(message = "La categoria del producto es obligatorio")
@@ -104,10 +106,19 @@ public class Producto {
 		this.createdAt = createdAt;
 	}
 
+	public String getImage() {
+		return image;
+	}
+
+	public void setImage(String image) {
+		this.image = image;
+	}
+
 	@Override
 	public String toString() {
-		return "Producto [id=" + id + ", nombre=" + nombre + ", descripcion=" + descripcion + ", categoria=" + categoria
-				+ ", precio=" + precio + ", stock=" + stock + ", createdAt=" + createdAt + "]";
+		return "Producto [id=" + id + ", nombre=" + nombre + ", descripcion=" + descripcion + ", precio=" + precio
+				+ ", stock=" + stock + ", createdAt=" + createdAt + ", image=" + image + ", categoria=" + categoria
+				+ "]";
 	}
 
 }
