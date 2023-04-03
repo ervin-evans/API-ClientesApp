@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +48,7 @@ public class ClientesController {
 	@Autowired
 	private IRegionesService iRegionesService;
 
-	@Value("${clientes.app.path.images}")
+	@Value("${clientes.app.path.clientes.images}")
 	private String pathImages;
 
 	/**************************************************************************************************
@@ -56,6 +58,13 @@ public class ClientesController {
 	@GetMapping("/list")
 	public List<Cliente> clientes() {
 		return iClienteService.findAllClientes();
+	}
+	/**************************************************************************************************
+	 * * MOSTRAR TODOS LOS CLIENTES CON PAGINACION
+	 **************************************************************************************************/
+	@GetMapping("/pageable")
+	public Page<Cliente> clientesPaginados(Pageable pageable){
+		return iClienteService.findByPage(pageable);
 	}
 
 	/**************************************************************************************************
@@ -101,6 +110,13 @@ public class ClientesController {
 			response.put("errors", errors);
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
 		}
+		
+		//verificar si el email ya existe
+		List<Cliente> clientesByEmail = iClienteService.findByEmail(cliente.getEmail());
+		if (!clientesByEmail.isEmpty()) {
+			response.put("msg", "El email " + cliente.getEmail() + " ya existe");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
 		try {
 			clienteDb = iClienteService.save(cliente);
 		} catch (DataAccessException e) {
@@ -139,14 +155,14 @@ public class ClientesController {
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
 		}
 		List<Cliente> clientesByEmail = iClienteService.findByEmail(cliente.getEmail());
-		if (!clientesByEmail.isEmpty()) {
+		if (clientesByEmail.size()>1) {
 			response.put("msg", "El email " + cliente.getEmail() + " ya existe");
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
 		}
 		try {
 			clienteDB.setNombre(cliente.getNombre());
-			clienteDB.setApellidoPaterno(cliente.getApellidoMaterno());
-			clienteDB.setApellidoPaterno(cliente.getApellidoMaterno());
+			clienteDB.setApellidoPaterno(cliente.getApellidoPaterno());
+			clienteDB.setApellidoMaterno(cliente.getApellidoMaterno());
 			clienteDB.setEmail(cliente.getEmail());
 			clienteDB.setFoto(cliente.getFoto());
 			clienteDB.setRegion(cliente.getRegion());
@@ -194,10 +210,14 @@ public class ClientesController {
 	/**************************************************************************************************
 	 * * GUARDAR IMAGENES DEL CLIENTE
 	 **************************************************************************************************/
-
+//TODO:Remover la foto anterior en caso de actualizacion 
 	@PostMapping("/image/upload")
 	public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestParam("id") Long id) {
 		Map<String, Object> response = new HashMap<>();
+		if(file ==null) {
+			response.put("msg", "No hay imagen en la peticion");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
 		if (UploadPhoto.isValidImageExtension(file.getOriginalFilename())) {
 			Cliente cliente = iClienteService.findById(id);
 			if (cliente != null) {

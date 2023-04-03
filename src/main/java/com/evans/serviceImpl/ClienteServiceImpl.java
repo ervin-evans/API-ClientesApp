@@ -3,6 +3,8 @@ package com.evans.serviceImpl;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.evans.models.Cliente;
@@ -18,6 +20,11 @@ public class ClienteServiceImpl implements IClienteService {
 	@Override
 	public List<Cliente> findAllClientes() {
 		return iClienteRepository.findAll();
+	}
+
+	@Override
+	public Page<Cliente> findByPage(Pageable pageable) {
+		return iClienteRepository.findAll(pageable);
 	}
 
 	@Override

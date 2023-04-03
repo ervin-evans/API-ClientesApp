@@ -34,7 +34,6 @@ import com.evans.service.ICategoriaService;
 import com.evans.service.IProductoService;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 
 @RestController
 @CrossOrigin(origins = { "http://localhost:4200" })

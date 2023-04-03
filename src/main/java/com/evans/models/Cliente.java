@@ -1,6 +1,7 @@
 package com.evans.models;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
@@ -11,10 +12,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -38,19 +38,23 @@ public class Cliente {
 	private String apellidoMaterno;
 
 	@Email(message = "El e-mail debe tener formato adecuado", regexp = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$")
-	@NotBlank(message = "El e-mail no debe quedar vacio")
 	private String email;
 
-	private String foto;
+	private String foto ="no-image";
 
 	@Column(name = "created_at")
-	private LocalDate createdAt;
+	private LocalDateTime createdAt;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@NotNull(message = "La region es obligatoria")
 	@JoinColumn(name = "region_id")
 	@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 	private Region region;
+	
+	@PrePersist
+	private void generateCreatedAt() {
+		createdAt = LocalDateTime.now();
+	}
 
 	public Long getId() {
 		return id;
@@ -100,11 +104,11 @@ public class Cliente {
 		this.foto = foto;
 	}
 
-	public LocalDate getCreatedAt() {
+	public LocalDateTime getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDate createdAt) {
+	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
 
