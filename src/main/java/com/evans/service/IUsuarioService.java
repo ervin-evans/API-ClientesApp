@@ -13,7 +13,8 @@ public interface IUsuarioService {
 
 	public Usuario findById(Long id);
 
-	public List<Usuario> findByUsername(String username);
+	public Usuario findByUsername(String username);
+	public boolean userExist(String username);
 
 	public Page<Usuario> findByPage(Pageable pageable);
 

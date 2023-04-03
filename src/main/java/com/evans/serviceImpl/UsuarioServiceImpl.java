@@ -31,10 +31,6 @@ public class UsuarioServiceImpl implements IUsuarioService {
 	public Usuario findById(Long id) {
 		return iUsuarioRepository.findById(id).orElse(null);
 	}
-	@Override
-	public List<Usuario> findByUsername(String username) {
-		return iUsuarioRepository.findByUsername(username);
-	}
 
 	@Override
 	public Usuario save(Usuario usuario) {
@@ -47,5 +43,14 @@ public class UsuarioServiceImpl implements IUsuarioService {
 		return usuario;
 	}
 
+	@Override
+	public boolean userExist(String username) {
+		return iUsuarioRepository.findByUsername(username).isPresent();
+	}
+
+	@Override
+	public Usuario findByUsername(String username) {
+		return iUsuarioRepository.findByUsername(username).orElse(null);
+	}
 
 }
